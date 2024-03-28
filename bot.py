@@ -260,7 +260,7 @@ async def help(ctx):
     **/ledger updatebank** - Update bank amount with how many chips are remaining
     **/ledger individual_stats** - Get your or another player's Poker stats
     **/ledger leaderboard** - Current Poker Leaderboard
-    **/ledger mint** - create new money out of thin air
+    **/ledger mint** - Use this to add money to your account (the first time), max $800 
     **/ledger hands** - Ranks of Hands in Texas Holdem Poker
     """
 
