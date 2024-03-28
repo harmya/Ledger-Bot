@@ -74,7 +74,6 @@ async def create_player_bank_graph(ledger_data: PersistentLedger, ident: str):
             timestamps.append(datetime.fromtimestamp(entry["t"]))
             balances.append(running_balance)
 
-
     # for timestamps, remove the minutes, hours and year
     timestamps = [timestamp.strftime("%m-%d") for timestamp in timestamps]
 
@@ -122,6 +121,9 @@ async def create_leaderboard_graph(ledger_data: PersistentLedger):
                     balances[player].append(running_bals[player])
 
                 timestamps.append(datetime.fromtimestamp(entry["t"]))
+
+    # for timestamps, remove the minutes, hours and year
+    timestamps = [timestamp.strftime("%m-%d") for timestamp in timestamps]
 
     for player in players:
         if player == "pot" or player == "U.S. Federal Reserve":
@@ -194,7 +196,6 @@ async def buyin(ctx, member: discord.Member = None, amount: int = 200):
     name="updatebank",
     description="Update bank amount with how many chips are remaining",
 )
-
 async def updatebank(ctx, amount: int, member: discord.Member = None):
     if member is None:
         member = ctx.author
@@ -251,9 +252,8 @@ async def updatebank(ctx, amount: int, member: discord.Member = None):
 DISPLAY COMMAND FUNCTIONS
 """
 
-@ledger.command(
-    name="help", description="Get help on how to use the ledger commands"
-)
+
+@ledger.command(name="help", description="Get help on how to use the ledger commands")
 async def help(ctx):
     message = """
     **/ledger buyin** - Buy into the game, default $200
@@ -271,6 +271,7 @@ async def help(ctx):
     )
 
     await ctx.respond(embed=embed)
+
 
 @ledger.command(
     name="individual_stats", description="Get your or another player's Poker stats"
@@ -368,6 +369,26 @@ async def mint(ctx, amount: int, member: discord.Member = None):
     name = member.display_name
 
     async with ledger_data.lock:
+        total_minted = sum(
+            transaction["amount"]
+            for transaction in ledger_data.data
+            if transaction["u_from"] == "U.S. Federal Reserve"
+            and transaction["u_to"] == ident
+        )
+        if amount > 800 - total_minted:
+            message = f"Player **{name}'s** already money minted!\n"
+            color = discord.Colour.red()
+
+            embed = discord.Embed(
+                title=f"No. You are not a money-minter.",
+                description=message,
+                colour=color,
+            )
+
+            await ctx.respond(embed=embed)
+
+            return
+
         ledger_data.append(
             {
                 "u_from": "U.S. Federal Reserve",
